@@ -11,7 +11,7 @@ local Action = {
 }
 
 local STATE = State.stopped
-local actionQueue = {}
+local packetQueue = {}
 
 local function rednet()
   local modem = peripheral.getName((peripheral.find("modem")))
@@ -24,7 +24,7 @@ local function rednet()
     if type(message.action) ~= "string" then goto skip_packet end
     message._id = id
 
-    table.insert(actionQueue, message)
+    table.insert(packetQueue, message)
 
     ::skip_packet::
   end
@@ -138,8 +138,9 @@ local function miner()
       sleep(1)
     end
 
-    while #actionQueue ~= 0 do
-      local p = table.remove(actionQueue, 1)
+    local packets = packetQueue
+    packetQueue = {}
+    for _, p in ipairs(packets) do
       local action = p.action
       local id = p._id
 
