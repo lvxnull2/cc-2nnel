@@ -1,13 +1,14 @@
 local State = {
+  running = "running",
   stopped = "stopped",
-  running = "running"
 }
 
 local Action = {
-  stop = "STOP",
-  start = "START",
-  refuel = "REFUEL",
   ping = "PING",
+  refuel = "REFUEL",
+  start = "START",
+  status = "STATUS",
+  stop = "STOP",
 }
 
 local STATE = State.stopped
@@ -152,6 +153,8 @@ local function miner()
       elseif action == Action.refuel then
         local refueled = refuel(p.limit)
         response(id, ("Refueled %d fuel units"):format(refueled))
+      elseif action == Action.status then
+        response(id, ("Fuel level: %d/%s"):format(turtle.getFuelLevel(), turtle.getFuelLimit()))
       elseif action == Action.ping then
         response(id, "Pong!")
       else
