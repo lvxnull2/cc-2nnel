@@ -9,8 +9,7 @@ local Action = {
   start = "START",
   status = "STATUS",
   stop = "STOP",
-  turnaround = "TURNAROUND",
-  servicetunnel = "SERVICETUNNEL"
+  turn = "TURN",
 }
 
 local STATE = State.stopped
@@ -69,17 +68,19 @@ end
 
 
 local function digTunnel()
+  local dist = 0
   turtle.placeDown()
   if detectOre(turtle.inspect) then
-    return true
+    return true, dist
   end
   retry(0.5, mineForward)
   assert(turtle.forward())
+  dist = 1
   if detectOre(turtle.inspectUp) then
-    return true
+    return true, dist
   end
   retry(0.5, mineUp)
-  return false
+  return false, dist
 end
 
 
@@ -110,36 +111,6 @@ local function refuel(limit)
   return turtle.getFuelLevel() - fuelLevel
 end
 
-local function turn_around(direction)
-  if direction == "right" then
-    assert(turtle.turnRight())
-    digTunnel()
-    digTunnel()
-    digTunnel()
-    assert(turtle.turnRight())
-  else
-    assert(turtle.turnLeft())
-    digTunnel()
-    digTunnel()
-    digTunnel()
-    assert(turtle.turnLeft())
-  end
-end
-
-local function service_tunnel()
-  assert(turtle.turnLeft())
-  mineForward()
-  mineUp()
-  assert(turtle.up())
-  mineForward()
-  assert(turtle.turnRight())
-  assert(turtle.turnRight())
-  mineForward()
-  assert(turtle.down())
-  mineForward()
-  assert(turtle.turnLeft())
-end
-
 local function response(id, msg, kwargs)
   -- just in case :3
   print(msg)
@@ -156,9 +127,10 @@ end
 
 local function miner()
   sleep(0.5)
+  local tunnelCountdown
   while true do
     if STATE == State.running then
-      local ok, message = pcall(digTunnel)
+      local ok, message, dist = pcall(digTunnel)
       if not ok then
         print("Mining procedure failed: " .. message)
         stopAll("Mining error occured: " .. message)
@@ -167,9 +139,18 @@ local function miner()
         if oreFound then
           stopAll("Ore found")
         end
+
+        if tunnelCountdown and tunnelCountdown > 0 then
+          tunnelCountdown = tunnelCountdown - dist
+        end
       end
     elseif STATE == State.stopped then
       sleep(1)
+    end
+
+    if tunnelCountdown == 0 then
+      STATE = State.stopped
+      tunnelCountdown = nil
     end
 
     local packets = packetQueue
@@ -180,6 +161,7 @@ local function miner()
 
       if action == Action.start then
         STATE = State.running
+        tunnelCountdown = p.limit
       elseif action == Action.stop then
         STATE = State.stopped
       elseif action == Action.refuel then
@@ -187,10 +169,12 @@ local function miner()
         response(id, ("Refueled %d fuel units"):format(refueled))
       elseif action == Action.status then
         response(id, ("Fuel level: %d/%s"):format(turtle.getFuelLevel(), turtle.getFuelLimit()))
-      elseif action == Action.turnaround then
-        turn_around(p.direction)
-      elseif action == Action.servicetunnel then
-        service_tunnel()
+      elseif action == Action.turn then
+        if p.direction == "left" then
+          assert(turtle.turnLeft())
+        elseif p.direction == "right" then
+          assert(turtle.turnRight())
+        end
       elseif action == Action.ping then
         response(id, "Pong!")
       else

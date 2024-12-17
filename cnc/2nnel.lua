@@ -6,8 +6,10 @@ rednet.open(modem)
 local action = args[1]:upper()
 local packet = {action = action}
 
-if action == "TURNAROUND" then
+if action == "TURN" then
   packet.direction = args[2]
+elseif action == "START" then
+  packet.limit = tonumber(args[2])
 end
 
 rednet.broadcast(packet, "2nnel")
