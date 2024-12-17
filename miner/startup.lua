@@ -151,6 +151,9 @@ local function miner()
         local ok, message = pcall(refuel, p.limit)
         if not ok then
           response(id, "Refuel failed: " .. message)
+        else
+          local refueled = message
+          response(id, ("Refueled %d fuel units"):format(refueled))
         end
       elseif action == Action.ping then
         response(id, "Pong!")
