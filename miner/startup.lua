@@ -151,7 +151,7 @@ end
 
 local function stopAll(reason)
   STATE = State.stopped
-  rednet.broadcast({ action = Action.STOP, reason = reason }, "2nnel")
+  rednet.broadcast({ action = Action.stop, reason = reason }, "2nnel")
 end
 
 local function miner()
