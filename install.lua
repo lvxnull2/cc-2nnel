@@ -31,6 +31,8 @@ end
 
 if turtle then
   dl(files, "miner")
+  settings.set("motd.enable", false)
+  settings.save()
 else
   dl(files, "cnc")
 end
