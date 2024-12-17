@@ -93,7 +93,7 @@ local function refuel(limit)
     if count == 0 then goto skip_slot end
 
     turtle.select(i)
-    assert(turtle.refuel(limit))
+    turtle.refuel(limit)
 
     if limit then
       limit = limit - (count - turtle.getItemCount())
@@ -150,13 +150,8 @@ local function miner()
       elseif action == Action.stop then
         STATE = State.stopped
       elseif action == Action.refuel then
-        local ok, message = pcall(refuel, p.limit)
-        if not ok then
-          response(id, "Refuel failed: " .. message)
-        else
-          local refueled = message
-          response(id, ("Refueled %d fuel units"):format(refueled))
-        end
+        local refueled = refuel(p.limit)
+        response(id, ("Refueled %d fuel units"):format(refueled))
       elseif action == Action.ping then
         response(id, "Pong!")
       else
