@@ -10,6 +10,7 @@ local Action = {
   status = "STATUS",
   stop = "STOP",
   turnaround = "TURNAROUND",
+  servicetunnel = "SERVICETUNNEL"
 }
 
 local STATE = State.stopped
@@ -125,6 +126,20 @@ local function turn_around(direction)
   end
 end
 
+local function service_tunnel()
+  assert(turtle.turnLeft())
+  mineForward()
+  mineUp()
+  assert(turtle.up())
+  mineForward()
+  assert(turtle.turnRight())
+  assert(turtle.turnRight())
+  mineForward()
+  assert(turtle.down())
+  mineForward()
+  assert(turtle.turnLeft())
+end
+
 local function response(id, msg, kwargs)
   -- just in case :3
   print(msg)
@@ -174,6 +189,8 @@ local function miner()
         response(id, ("Fuel level: %d/%s"):format(turtle.getFuelLevel(), turtle.getFuelLimit()))
       elseif action == Action.turnaround then
         turn_around(p.direction)
+      elseif action == Action.servicetunnel then
+        service_tunnel()
       elseif action == Action.ping then
         response(id, "Pong!")
       else
