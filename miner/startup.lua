@@ -13,10 +13,11 @@ local Action = {
 local STATE = State.stopped
 local packetQueue = {}
 
-local function rednet()
+local function listener()
   local modem = peripheral.getName((peripheral.find("modem")))
   rednet.open(modem)
 
+  print("Listening for packets...")
   while true do
     local id, message = rednet.receive("2nnel")
     if id == os.computerID() then goto skip_packet end
@@ -60,7 +61,7 @@ local function detectOre(inspector)
   local has_block, data = inspector()
   if not has_block then return false end
 
-  return string.find(data.name, "_ore$")) ~= nil
+  return (string.find(data.name, "_ore$")) ~= nil
 end
 
 
@@ -165,4 +166,4 @@ local function miner()
   end
 end
 
-parallel.waitForAny(rednet, miner)
+parallel.waitForAny(listener, miner)
